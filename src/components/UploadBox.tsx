@@ -8,6 +8,8 @@ export default function UploadBox() {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [transcript, setTranscript] = useState("");
+  
 
   const handleUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -37,6 +39,26 @@ export default function UploadBox() {
       .getPublicUrl(fileName);
 
     setVideoUrl(data.publicUrl);
+    
+    setMessage("Transcribing video...");
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await fetch(
+      "/api/transcribe",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+
+    if (result.text) {
+      setTranscript(result.text);
+    }
 
     setMessage("Upload successful!");
     setUploading(false);
@@ -80,6 +102,18 @@ export default function UploadBox() {
             controls
             className="mt-6 rounded-xl"
           />
+        )}
+
+        {transcript && (
+          <div className="mt-6 w-full text-left">
+            <h3 className="text-xl font-bold mb-2">
+              Transcript
+            </h3>
+
+            <div className="p-4 rounded-xl bg-zinc-900 text-zinc-300">
+              {transcript}
+            </div>
+          </div>
         )}
       </div>
     </div>
