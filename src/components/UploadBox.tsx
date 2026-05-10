@@ -9,7 +9,8 @@ export default function UploadBox() {
   const [message, setMessage] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [transcript, setTranscript] = useState("");
-  
+  const [analysis, setAnalysis] = useState("");
+
 
   const handleUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -39,7 +40,7 @@ export default function UploadBox() {
       .getPublicUrl(fileName);
 
     setVideoUrl(data.publicUrl);
-    
+
     setMessage("Transcribing video...");
 
     const formData = new FormData();
@@ -58,6 +59,31 @@ export default function UploadBox() {
 
     if (result.text) {
       setTranscript(result.text);
+
+      setMessage("Analyzing ad...");
+
+      const analysisResponse =
+        await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            transcript: result.text,
+          }),
+        });
+
+      const analysisData =
+        await analysisResponse.json();
+
+      setAnalysis(
+        analysisData.analysis
+      );
+
+      setMessage(
+        "AI analysis complete!"
+      );
     }
 
     setMessage("Upload successful!");
@@ -112,6 +138,18 @@ export default function UploadBox() {
 
             <div className="p-4 rounded-xl bg-zinc-900 text-zinc-300">
               {transcript}
+            </div>
+          </div>
+        )}
+
+        {analysis && (
+          <div className="mt-6 w-full text-left">
+            <h3 className="text-xl font-bold mb-2">
+              AI Analysis
+            </h3>
+
+            <div className="p-4 rounded-xl bg-zinc-900 text-zinc-300 whitespace-pre-wrap">
+              {analysis}
             </div>
           </div>
         )}
